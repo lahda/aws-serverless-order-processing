@@ -38,47 +38,69 @@ Ce projet implémente un système de traitement de commandes e-commerce avec :
 
 ## 🏗️ Architecture
 
-![Architecture Serverless](https://raw.githubusercontent.com/votre-username/votre-repo/main/docs/architecture.png)
+### Architecture Serverless Complète
 
-### Flux de traitement
+![Architecture Serverless de Traitement de Commandes Asynchrones sur AWS](docs/architecture.png)
 
-1. **Frontend** : L'utilisateur soumet une commande via l'interface web
-2. **Application Flask** : Reçoit la commande et l'envoie à SQS
-3. **Amazon SQS** : Stocke le message dans la file d'attente
-4. **Step Functions** : Orchestre le workflow de traitement
-5. **Lambda Functions** : Exécutent la logique métier en 3 étapes :
-   - **Validation** : Vérifie la validité de la commande
-   - **Paiement** : Traite le paiement (simulation)
-   - **Notification** : Envoie une notification de confirmation
+> **Note** : Placez votre diagramme d'architecture dans le dossier `docs/architecture.png`
 
-### Diagramme d'architecture
+### Flux de traitement détaillé
 
+#### 1️⃣ **Frontend (Interface Utilisateur)**
+- L'utilisateur remplit le formulaire de commande
+- L'application web (HTML/CSS/JavaScript) soumet la commande via POST
+
+#### 2️⃣ **AWS Elastic Beanstalk (Application Backend)**
+- Application Flask hébergée sur instance EC2
+- Reçoit la requête POST `/submit-order`
+- Effectue deux actions simultanées :
+  - Envoie le message dans **Amazon SQS**
+  - Démarre l'exécution de la **Step Function**
+
+#### 3️⃣ **Amazon SQS (File de Messages)**
+- File d'attente `orders-queue`
+- Stocke les messages de commandes
+- Garantit la livraison asynchrone
+
+#### 4️⃣ **AWS Step Functions (Orchestration)**
+- State Machine `OrderProcessingWorkflow`
+- Orchestre le workflow en 3 états :
+
+**État 1 - Validation** :
 ```
-┌─────────────┐
-│ Utilisateur │
-└──────┬──────┘
-       │
-       ▼
-┌──────────────────────┐
-│  Application Web     │
-│  Elastic Beanstalk   │
-│  (Flask + Python)    │
-└──────┬───────────┬───┘
-       │           │
-       ▼           ▼
-┌────────────┐  ┌─────────────────┐
-│ Amazon SQS │  │ Step Functions  │
-│ Queue      │  │ State Machine   │
-└────────────┘  └────────┬────────┘
-                         │
-              ┌──────────┼──────────┐
-              ▼          ▼          ▼
-         ┌─────────┐ ┌──────────┐ ┌──────────┐
-         │Validate │ │ Process  │ │   Send   │
-         │ Order   │ │ Payment  │ │Notification│
-         │ Lambda  │ │  Lambda  │ │  Lambda  │
-         └─────────┘ └──────────┘ └──────────┘
+ValidateOrder Lambda → Vérifie orderId et amount (0 < amount < 10000)
 ```
+
+**État 2 - Traitement du Paiement** :
+```
+ProcessPayment Lambda → Traite le paiement (simulation avec 90% de succès)
+```
+
+**État 3 - Notification** :
+```
+SendNotification Lambda → Envoie la notification de confirmation
+```
+
+#### 5️⃣ **AWS Lambda (Traitement Métier)**
+- **ValidateOrder** : Valide les données de la commande
+- **ProcessPayment** : Simule le traitement du paiement
+- **SendNotification** : Envoie la notification finale
+
+#### 6️⃣ **IAM Permissions**
+- Le rôle `aws-elasticbeanstalk-ec2-role` accède à SQS et Step Functions
+- Chaque Lambda a son propre rôle d'exécution
+
+### Composants clés
+
+| Composant | Technologie | Rôle |
+|-----------|-------------|------|
+| **Frontend** | HTML5, CSS3, JavaScript | Interface utilisateur |
+| **Backend** | Flask (Python 3.11) | API REST |
+| **Hébergement** | Elastic Beanstalk (EC2) | Serveur d'application |
+| **Queue** | Amazon SQS | File de messages asynchrone |
+| **Orchestration** | Step Functions | Workflow state machine |
+| **Compute** | AWS Lambda | Fonctions serverless |
+| **Sécurité** | IAM | Gestion des accès |
 
 ## 🔧 Services AWS utilisés
 
@@ -140,6 +162,7 @@ Attachez les policies suivantes au rôle `aws-elasticbeanstalk-ec2-role` :
 order-processing-aws/
 ├── application.py              # Application Flask principale
 ├── requirements.txt            # Dépendances Python
+├── Procfile                    # Configuration Elastic Beanstalk
 ├── templates/
 │   └── index.html             # Interface web
 ├── lambda/
@@ -155,6 +178,15 @@ order-processing-aws/
 ├── LICENSE
 └── README.md
 ```
+
+### Fichiers de configuration
+
+#### `Procfile`
+```
+web: gunicorn application:application --bind 0.0.0.0:8000 --workers 3 --timeout 60
+```
+
+Ce fichier indique à Elastic Beanstalk comment démarrer l'application web avec Gunicorn.
 
 ## ⚙️ Configuration
 
@@ -353,7 +385,6 @@ aws lambda delete-function --function-name SendNotification
 
 Pour toute question ou problème :
 - Ouvrez une [issue](https://github.com/votre-username/order-processing-aws/issues)
-
 
 ---
 
