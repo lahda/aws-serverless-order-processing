@@ -40,7 +40,7 @@ Ce projet implémente un système de traitement de commandes e-commerce avec :
 
 ### Architecture Serverless Complète
 
-![Architecture Serverless de Traitement de Commandes Asynchrones sur AWS](docs/architecture.png)
+![Architecture Serverless de Traitement de Commandes Asynchrones sur AWS](docs/architecture.drawio.png)
 
 ### Flux de traitement détaillé
 
