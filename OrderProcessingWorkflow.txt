@@ -1,0 +1,69 @@
+{
+  "Comment": "Order Processing Workflow",
+  "StartAt": "ValidateOrder",
+  "States": {
+    "ValidateOrder": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:381492097033:function:ValidateOrder",
+        "Payload": {
+          "order.$": "$.order"
+        }
+      },
+      "ResultSelector": {
+        "result.$": "$.Payload"
+      },
+      "ResultPath": "$.validationResult",
+      "Next": "CheckValidation"
+    },
+    "CheckValidation": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.validationResult.result.isValid",
+          "BooleanEquals": true,
+          "Next": "ProcessPayment"
+        }
+      ],
+      "Default": "ValidationFailed"
+    },
+    "ProcessPayment": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:381492097033:function:ProcessPayment",
+        "Payload": {
+          "orderId.$": "$.validationResult.result.orderId",
+          "amount.$": "$.validationResult.result.amount"
+        }
+      },
+      "ResultSelector": {
+        "result.$": "$.Payload"
+      },
+      "ResultPath": "$.paymentResult",
+      "Next": "SendNotification"
+    },
+    "SendNotification": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:381492097033:function:SendNotification",
+        "Payload": {
+          "orderId.$": "$.paymentResult.result.orderId",
+          "paymentStatus.$": "$.paymentResult.result.paymentStatus"
+        }
+      },
+      "ResultSelector": {
+        "result.$": "$.Payload"
+      },
+      "ResultPath": "$.notificationResult",
+      "End": true
+    },
+    "ValidationFailed": {
+      "Type": "Fail",
+      "Error": "ValidationError",
+      "Cause": "Order validation failed"
+    }
+  }
+}
