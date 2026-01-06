@@ -42,8 +42,6 @@ Ce projet implémente un système de traitement de commandes e-commerce avec :
 
 ![Architecture Serverless de Traitement de Commandes Asynchrones sur AWS](docs/architecture.png)
 
-> **Note** : Placez votre diagramme d'architecture dans le dossier `docs/architecture.png`
-
 ### Flux de traitement détaillé
 
 #### 1️⃣ **Frontend (Interface Utilisateur)**
