@@ -1,0 +1,25 @@
+Scénario d’entreprise
+
+Une entreprise e-commerce en forte croissance souhaite moderniser son système de gestion des commandes afin de répondre à plusieurs enjeux critiques :
+
+Absorber des pics de trafic (soldes, promotions, événements).
+
+Garantir un traitement fiable et traçable des commandes.
+
+Découpler les étapes métier pour améliorer la résilience.
+
+Faciliter l’évolution du workflow métier sans refonte complète.
+
+Réduire les coûts en utilisant des services managés.
+
+L’entreprise opte pour une architecture event-driven et serverless, capable de traiter chaque commande de manière asynchrone, tout en assurant la validation, le paiement et la notification client.
+
+## 📋 Vue d'ensemble du projet
+
+Ce projet implémente un système de traitement asynchrone de commandes e-commerce utilisant les services AWS suivants :
+- **AWS Elastic Beanstalk** : Hébergement de l'application web
+- **Amazon SQS** : File d'attente de messages
+- **AWS Step Functions** : Orchestration du workflow
+- **AWS Lambda** : Traitement métier (3 fonctions)
+
+**Durée d'implémentation** : ~45 minutes
